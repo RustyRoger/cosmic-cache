@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Cosmic Cache" width="200">
+</p>
+
 <h1 align="center">Cosmic Cache</h1>
 
 <p align="center">
