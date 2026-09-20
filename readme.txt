@@ -1,6 +1,6 @@
 === Cosmic Cache ===
 Contributors: cosmiccache
-Tags: cache, caching, performance, page cache, object cache, optimization, cdn
+Tags: cache, page cache, performance, optimization, cdn
 Requires at least: 6.0
 Tested up to: 7.0.2
 Requires PHP: 8.0

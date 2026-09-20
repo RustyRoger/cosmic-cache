@@ -1,0 +1,26 @@
+# Push readme.txt / .wordpress-org/ updates to wordpress.org between releases.
+#
+# Updates banners, icons, screenshots or the readme (e.g. "Tested up to")
+# without cutting a new version. Runs on main only when nothing but the
+# readme and wporg assets changed; otherwise it bails safely.
+name: wordpress.org readme/assets update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trunk:
+    name: Push readme/assets to trunk
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: WordPress.org readme/assets update
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: cosmic-cache

@@ -75,3 +75,14 @@ Use conventional-commit style prefixes: `feat:`, `fix:`, `docs:`, `test:`,
 - Reference the issue you fix (e.g. `Fixes #12`).
 - Keep the README, `readme.txt` and `CHANGELOG.md` in sync with user-facing
   changes.
+
+## WordPress.org releases
+
+- Keep the plugin header (`cosmic-cache.php`), `readme.txt` Stable tag and
+  the `CHANGELOG.md` section in sync — the `guard` job blocks mismatched tags.
+- `readme.txt` Tags must stay at 5 or fewer (directory anti-spam rule).
+- Release: `git tag -a vX.Y.Z -m "..." && git push origin main vX.Y.Z`.
+  The `release` workflow publishes the GitHub Release; the
+  `deploy-wporg` workflow mirrors the tag to the wordpress.org SVN
+  (needs `SVN_USERNAME`/`SVN_PASSWORD` secrets). Store banners/icons live in
+  `.wordpress-org/` and are synced by the deploy and `wporg-assets` workflows.

@@ -1,0 +1,21 @@
+# Files excluded from the wordpress.org SVN package.
+# Mirrors bin/build.sh: only runtime files ship (src/, dropins/, views/,
+# languages/, assets/, plugin entry, readme.txt, uninstall.php).
+# Used by 10up/action-wordpress-plugin-deploy.
+.wordpress-org
+.github
+bin
+tests
+/.gitignore
+/.distignore
+composer.json
+composer.lock
+phpcs.xml
+phpstan.neon
+phpunit.xml.dist
+CHANGELOG.md
+COMPARISON.md
+CONTRIBUTING.md
+README.md
+SECURITY.md
+SPECS.md

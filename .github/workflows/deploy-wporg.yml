@@ -1,0 +1,32 @@
+# Deploy to wordpress.org on version tags (v*).
+#
+# Prerequisites (one-time):
+#   1. Plugin approved in the wordpress.org directory.
+#   2. Repository secrets SVN_USERNAME + SVN_PASSWORD (wordpress.org
+#      credentials) set in Settings → Secrets and variables → Actions.
+#   3. SLUG matches the approved wordpress.org slug.
+#
+# Flow: git tag -a vX.Y.Z -m "..." && git push origin main vX.Y.Z
+# The action commits the tag contents to SVN trunk + tags/X.Y.Z,
+# respecting .distignore, and maps .wordpress-org/ to SVN assets/.
+name: Deploy to wordpress.org
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    name: SVN deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: WordPress.org plugin deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: cosmic-cache
