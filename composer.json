@@ -1,0 +1,38 @@
+{
+    "name": "cosmic-cache/cosmic-cache",
+    "description": "Performance-focused WordPress caching plugin: page cache served before WP boots, object cache, asset optimization, CDN rewrite.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "php-stubs/woocommerce-stubs": "^9.0",
+        "php-stubs/wordpress-stubs": "^6.7",
+        "php-stubs/wp-cli-stubs": "^2.9",
+        "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^9.6",
+        "squizlabs/php_codesniffer": "^3.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "CosmicCache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CosmicCache\\Tests\\": "tests/unit/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "8.0.0"
+        }
+    },
+    "scripts": {
+        "lint": "find src dropins cosmic-cache.php uninstall.php -name '*.php' -o -name 'cosmic-cache.php' -o -name 'uninstall.php' | xargs -n1 php -l",
+        "test": "phpunit"
+    }
+}

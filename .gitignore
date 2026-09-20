@@ -1,0 +1,5 @@
+/vendor/
+/composer.lock
+*.log
+/.phpunit.result.cache
+/cosmic-cache.zip

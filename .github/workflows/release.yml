@@ -1,0 +1,85 @@
+name: Release
+
+# Cut a release by pushing a tag: git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z
+# The guard job fails the run when the tag does not match the versioned files,
+# so CHANGELOG + readme.txt + plugin header must be synced BEFORE tagging.
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  guard:
+    name: Version coherence guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check tag matches versioned files
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "Tag version: $TAG"
+          fail() { echo "::error::$1"; exit 1; }
+
+          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' cosmic-cache.php | head -1)
+          [ "$HEADER" = "$TAG" ] || fail "cosmic-cache.php header is $HEADER, tag is v$TAG"
+
+          STABLE=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt | head -1)
+          [ "$STABLE" = "$TAG" ] || fail "readme.txt Stable tag is $STABLE, tag is v$TAG"
+
+          grep -q "^## \[$TAG\]" CHANGELOG.md || fail "CHANGELOG.md has no [$TAG] section"
+
+          echo "All version checks passed."
+
+  release:
+    name: Build zip + GitHub Release
+    needs: [ guard ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Build cosmic-cache.zip
+        run: bash bin/build.sh
+
+      - name: Assert packaged files (second net after the build self-check)
+        run: |
+          for f in cosmic-cache.php uninstall.php readme.txt src/Plugin.php src/Config.php dropins/advanced-cache.php dropins/object-cache.php views/page-cache.php views/optimization.php; do
+            unzip -l cosmic-cache.zip "cosmic-cache/$f" | grep -q "cosmic-cache/$f" || { echo "::error::MISSING FROM ZIP: $f"; exit 1; }
+          done
+          echo "zip contents OK"
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          awk -v tag="$TAG" '
+            /^## \[/ { if (found) exit; if ($0 ~ "^## \\[" tag "\\]") { found=1; next } }
+            found { print }
+          ' CHANGELOG.md > /tmp/notes.md
+          # Drop trailing blank lines; fallback when the section is empty.
+          sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' /tmp/notes.md
+          [ -s /tmp/notes.md ] || echo "Release $TAG." > /tmp/notes.md
+          head -20 /tmp/notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: /tmp/notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: cosmic-cache.zip

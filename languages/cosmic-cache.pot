@@ -1,0 +1,715 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Cosmic Cache 1.1.3\n"
+"POT-Creation-Date: 2026-09-09 20:48+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: none\n"
+"X-Generator: cosmic-cache build.sh\n"
+"X-Domain: cosmic-cache\n"
+
+#: src/Cache/Purger.php
+msgid "Clear cache"
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Critical CSS generation needs the PHP DOM extension (ext-dom), which is not available on this server."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "No URLs provided."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Only the first %d URLs were analyzed."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Critical CSS generation hit its time budget — no draft was saved. Try fewer URLs."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Skipped %s: page HTML could not be fetched."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Skipped %s: no DOM elements found."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Skipped remote stylesheet %s: only local files are analyzed."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Skipped stylesheet %s: content could not be read."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Critical CSS generation hit its size budget — no draft was saved. Exclude heavy stylesheets and retry."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "Stylesheet %1$s uses %2$d @import statement(s), which are not followed — those rules are missing from the draft."
+msgstr ""
+
+#: src/Optimization/CriticalGenerator.php
+msgid "No page could be analyzed — no draft was saved."
+msgstr ""
+
+#: src/Admin/SettingsPage.php
+msgid "Cosmic Cache"
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Not allowed."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Invalid nonce."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Cache purged (%d files removed)."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Purged %d URLs."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Preload finished: %1$d requested, %2$d cached."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "No generated draft to apply."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Draft exceeds the inline size cap. Confirm to apply it anyway."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Critical CSS applied (previous snippet kept for revert)."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Could not apply the draft."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Draft discarded."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Critical CSS reverted to the previous snippet."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "No previous snippet to revert to."
+msgstr ""
+
+#: src/Admin/PurgeController.php
+msgid "Draft ready: %1$d rules kept, %2$d dropped, %3$d bytes. Review it below, then Apply or Discard."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache requires PHP 8.0 or newer."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache does not yet support WordPress multisite. Caching is disabled on this network; define <code>COSMIC_CACHE_ALLOW_MULTISITE</code> to opt in (unsupported)."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache is active but the advanced-cache drop-in is missing. Deactivate and reactivate the plugin."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache needs <code>WP_CACHE</code> defined as true in wp-config.php to serve the page cache."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache cache directory is not writable: %s"
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache object cache is enabled with backend %s, but that extension is not available."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "A non-Cosmic object-cache drop-in is installed; Cosmic Cache will not overwrite it."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "A non-Cosmic advanced-cache drop-in is installed; Cosmic Cache will not overwrite it."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache had %d cache write failures — caching is effectively broken. Check disk space and permissions in the cache directory."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache had %d cache write failure(s). Check disk space and permissions. <a href=\"%s\">Tools tab</a> for diagnostics."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Your theme or plugins changed — the pasted Critical CSS may be stale (suboptimal paint, no breakage). <a href=\"%s\">Regenerate it in the Optimization tab</a>, then save to clear this notice."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache could not write to wp-content. Cache is disabled."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache could not add WP_CACHE to wp-config.php (not writable). The page cache is disabled until you add it manually."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache could not write its config file."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache found an existing advanced-cache.php it did not generate and left it untouched."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache could not write the advanced-cache.php drop-in (missing template or unwritable wp-content). Re-upload the complete plugin folder, then deactivate and reactivate."
+msgstr ""
+
+#: src/Admin/Notice.php
+msgid "Cosmic Cache needs attention."
+msgstr ""
+
+#: src/Plugin.php
+msgid "Cosmic Cache preload"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Enable page cache"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Master switch. Serves cached pages before WordPress boots."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Cache lifetime (seconds)"
+msgstr ""
+
+#: views/page-cache.php
+msgid "How long a cached page stays fresh. After expiry the file is deleted and rebuilt on the next visit. 0 = keep until purged."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Cache mobile separately"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Serves a distinct cached page to mobile visitors. Off by default: mobile visitors get the desktop page."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Cache for logged-in users"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Caches pages for logged-in users and varies on the auth cookie. Off by default — enabling it means a cached copy per logged-in user."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Vary on cookies"
+msgstr ""
+
+#: views/page-cache.php
+msgid "e.g. currency, store_id. Presence of a listed cookie gives those visitors their own cache entries."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Bypass query params"
+msgstr ""
+
+#: views/page-cache.php
+msgid "e.g. nocache, preview. These query params force a full cache bypass."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Whitelisted query params"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Only these params participate in the cache key; all others are ignored, so /?s=abc and / share one cache entry. Defaults are always included."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Bypass user agents"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Requests from these user agents are never cached and never served from cache. One regex or wildcard pattern per line."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Exclude URLs"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Never cache these. Plain paths (/cart) or regex patterns (/checkout/.+). One per line."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Exclude by cookie"
+msgstr ""
+
+#: views/page-cache.php
+msgid "If a listed cookie is present, the request bypasses the cache. Defaults are always included."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Precompress gzip"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Also store a .gz copy, served to clients advertising gzip. Roughly doubles disk usage; falls back to plain HTML."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Precompress brotli"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Store .br variants when brotli_compress() is available. Stronger compression than gzip, at a small CPU cost on save."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Emit HTTP caching headers"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Send Cache-Control, ETag and Last-Modified on cache hits so browsers and CDNs can cache too."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Body delivery"
+msgstr ""
+
+#: views/page-cache.php
+msgid "PHP (universal) streams the file through PHP. X-Sendfile (Apache mod_xsendfile) and X-Accel-Redirect (Nginx) let the web server send the cached file from disk with zero copy — the drop-in still computes the cache key, expiry and encoding, then hands the bytes to the server. The matching module/location must be installed (readme FAQ): otherwise the response has an empty body. Unknown values and paths outside the cache root fall back to PHP (readfile)."
+msgstr ""
+
+#: views/page-cache.php
+msgid "PHP (universal, default)"
+msgstr ""
+
+#: views/page-cache.php
+msgid "X-Sendfile (Apache mod_xsendfile)"
+msgstr ""
+
+#: views/page-cache.php
+msgid "X-Accel-Redirect (Nginx internal)"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Purge on post changes"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Invalidate related pages when posts are saved, trashed or unpublished."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Purge on comments"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Invalidate a post when its comments change."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Purge on term changes"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Invalidate archives when terms change."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Admin bar clear button"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Shows a “Clear cache” button in the toolbar."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Preload cache"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Warm the cache on a schedule so the first visitor never pays for a miss."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Preload sitemap URL"
+msgstr ""
+
+#: views/page-cache.php
+msgid "Leave empty to crawl the homepage and its links instead (bounded crawl, depth 2)."
+msgstr ""
+
+#: views/page-cache.php
+msgid "Preload interval (seconds)"
+msgstr ""
+
+#: views/page-cache.php
+msgid "How often the preload runs. Minimum 60 seconds."
+msgstr ""
+
+#: views/optimization.php
+msgid "Experimental:"
+msgstr ""
+
+#: views/cdn.php
+msgid "The CDN rewrite is experimental and off by default. Only asset links (stylesheets, scripts, images, icons, preload) are rewritten; canonical, RSS, and wp-json links keep the origin URL."
+msgstr ""
+
+#: views/cdn.php
+msgid "CDN URL"
+msgstr ""
+
+#: views/cdn.php
+msgid "e.g. https://cdn.example.com — rewrites local asset URLs to this host. Supports scheme-relative // URLs. Leave empty to disable."
+msgstr ""
+
+#: views/cdn.php
+msgid "CDN excludes"
+msgstr ""
+
+#: views/cdn.php
+msgid "Paths or extensions never rewritten, e.g. /uploads/ or .svg. One per line."
+msgstr ""
+
+#: views/object-cache.php
+msgid "No object-cache backend is available. Install ext-redis or ext-apcu to enable the Cosmic Cache object-cache drop-in."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Enable object cache"
+msgstr ""
+
+#: views/object-cache.php
+msgid "Generate the object-cache.php drop-in. Recommend enabling only when a backend is available below."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Backend"
+msgstr ""
+
+#: views/object-cache.php
+msgid "redis works locally or over TCP; apcu is a per-process in-memory cache best for single-server PHP-FPM."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Redis (ext-redis)"
+msgstr ""
+
+#: views/object-cache.php
+msgid "APCu"
+msgstr ""
+
+#: views/object-cache.php
+msgid "Redis host"
+msgstr ""
+
+#: views/object-cache.php
+msgid "The Redis server address. Use 127.0.0.1 for a local Redis. Only used when Backend is redis."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Redis port"
+msgstr ""
+
+#: views/object-cache.php
+msgid "Default 6379. Only used when Backend is redis."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Key prefix override"
+msgstr ""
+
+#: views/object-cache.php
+msgid "Optional. Defaults to a stable prefix derived from the database name to keep keys unique per site."
+msgstr ""
+
+#: views/object-cache.php
+msgid "Active drop-in:"
+msgstr ""
+
+#: views/object-cache.php
+msgid "Available:"
+msgstr ""
+
+#: views/object-cache.php
+msgid "none"
+msgstr ""
+
+#: views/tools.php
+msgid "Tools"
+msgstr ""
+
+#: views/tools.php
+msgid "Purge cache"
+msgstr ""
+
+#: views/tools.php
+msgid "Purge all"
+msgstr ""
+
+#: views/tools.php
+msgid "Delete every cached page everywhere on the site."
+msgstr ""
+
+#: views/tools.php
+msgid "Purge URL(s)"
+msgstr ""
+
+#: views/tools.php
+msgid "Purge URLs"
+msgstr ""
+
+#: views/tools.php
+msgid "Remove a specific page from the cache. One URL per line."
+msgstr ""
+
+#: views/tools.php
+msgid "Preload"
+msgstr ""
+
+#: views/tools.php
+msgid "Preload now"
+msgstr ""
+
+#: views/tools.php
+msgid "Crawl the sitemap (or homepage + links) and rebuild every page so visitors never hit a cold miss."
+msgstr ""
+
+#: views/tools.php
+msgid "Debug log"
+msgstr ""
+
+#: views/tools.php
+msgid "No debug log yet."
+msgstr ""
+
+#: views/optimization.php
+msgid "Lazy-loading, query-string stripping, and the CDN rewrite are marked experimental and are off by default. Test each on a staging copy before enabling in production."
+msgstr ""
+
+#: views/optimization.php
+msgid "Minify HTML"
+msgstr ""
+
+#: views/optimization.php
+msgid "Strip plain comments and collapse whitespace between tags. Off by default; never touches text-node whitespace."
+msgstr ""
+
+#: views/optimization.php
+msgid "Minify CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Strip comments and whitespace from stylesheet content (requires Minify HTML)."
+msgstr ""
+
+#: views/optimization.php
+msgid "Minify JS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Strip comments from inline scripts (requires Minify HTML)."
+msgstr ""
+
+#: views/optimization.php
+msgid "Combine CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Merge same-directory stylesheets into one cached file — fewer requests, but can break order-dependent rules. Test on staging."
+msgstr ""
+
+#: views/optimization.php
+msgid "Combine JS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Merge same-directory local scripts into one cached file. Test on staging — execution order can break inline dependencies."
+msgstr ""
+
+#: views/optimization.php
+msgid "Defer JavaScript"
+msgstr ""
+
+#: views/optimization.php
+msgid "Add defer to eligible scripts to remove render-blocking. JSON-LD/JSON scripts are never touched."
+msgstr ""
+
+#: views/optimization.php
+msgid "Delay JavaScript until interaction"
+msgstr ""
+
+#: views/optimization.php
+msgid "Experimental. Non-critical scripts load only after the visitor scrolls or clicks (3s timeout fallback). Handles in defer_exclude / delay_js_exclude always load normally. Can break scripts that must run early — test on staging."
+msgstr ""
+
+#: views/optimization.php
+msgid "Delay JS excludes"
+msgstr ""
+
+#: views/optimization.php
+msgid "Handles or patterns never delayed. One per line."
+msgstr ""
+
+#: views/optimization.php
+msgid "Inline critical CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Experimental. Inline your above-the-fold CSS and load remaining stylesheets asynchronously (non-render-blocking). Can cause FOUC — test on staging."
+msgstr ""
+
+#: views/optimization.php
+msgid "Critical CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Paste the above-the-fold CSS here — the rules a browser needs before first paint. Everything outside it loads after. Empty disables the feature."
+msgstr ""
+
+#: views/optimization.php
+msgid "Critical CSS excludes"
+msgstr ""
+
+#: views/optimization.php
+msgid "Stylesheets never loaded asynchronously (kept render-blocking). One per line."
+msgstr ""
+
+#: views/optimization.php
+msgid "before this tracking existed — re-save to record it"
+msgstr ""
+
+#: views/optimization.php
+msgid "unknown theme"
+msgstr ""
+
+#: views/optimization.php
+msgid "Critical CSS status"
+msgstr ""
+
+#: views/optimization.php
+msgid "Snippet %1$s (%2$d bytes), recorded %3$s for %4$s."
+msgstr ""
+
+#: views/optimization.php
+msgid "Possibly stale — regenerate after the theme/plugin change."
+msgstr ""
+
+#: views/optimization.php
+msgid "Generate critical CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Generate from homepage"
+msgstr ""
+
+#: views/optimization.php
+msgid "Heuristic, no browser needed: analyzes the homepage stylesheets and saves a draft for review below. Nothing is applied automatically. For more URLs use wp cosmic critical-css."
+msgstr ""
+
+#: views/optimization.php
+msgid "unknown date"
+msgstr ""
+
+#: views/optimization.php
+msgid "Draft waiting for review: %1$d rules kept, %2$d dropped, %3$d bytes, generated %4$s."
+msgstr ""
+
+#: views/optimization.php
+msgid "Apply draft"
+msgstr ""
+
+#: views/optimization.php
+msgid "Discard draft"
+msgstr ""
+
+#: views/optimization.php
+msgid "Revert to previous snippet"
+msgstr ""
+
+#: views/optimization.php
+msgid "Generation needs the PHP DOM extension (ext-dom), which is not available on this server. Paste the snippet manually above."
+msgstr ""
+
+#: views/optimization.php
+msgid "Lazy-load images"
+msgstr ""
+
+#: views/optimization.php
+msgid "Swap images to a placeholder until they scroll into view — smaller initial HTML, images load on demand. Experimental."
+msgstr ""
+
+#: views/optimization.php
+msgid "Lazy-load iframes"
+msgstr ""
+
+#: views/optimization.php
+msgid "Swap iframes to a placeholder until they scroll into view. Experimental."
+msgstr ""
+
+#: views/optimization.php
+msgid "Remove emoji script"
+msgstr ""
+
+#: views/optimization.php
+msgid "Strip the WordPress emoji script and style — a small loading win on desktop sites."
+msgstr ""
+
+#: views/optimization.php
+msgid "Remove query strings"
+msgstr ""
+
+#: views/optimization.php
+msgid "Strip ?ver= from static asset URLs — may hurt fully-pre-rendered asset matching. Experimental."
+msgstr ""
+
+#: views/optimization.php
+msgid "Exclude CSS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Patterns skipped by all CSS processing. One per line."
+msgstr ""
+
+#: views/optimization.php
+msgid "Exclude JS"
+msgstr ""
+
+#: views/optimization.php
+msgid "Patterns skipped by all JS processing. One per line."
+msgstr ""
+
+#: views/optimization.php
+msgid "Defer excludes"
+msgstr ""
+
+#: views/optimization.php
+msgid "Script handles or patterns never deferred. One per line."
+msgstr ""
+
+#: views/optimization.php
+msgid "DNS prefetch hosts"
+msgstr ""
+
+#: views/optimization.php
+msgid "Hosts to preconnect/dns-prefetch. One per line."
+msgstr ""
+

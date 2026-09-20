@@ -1,0 +1,31 @@
+# Cosmic Cache integration test environment.
+# Provides a WordPress install with Redis + APCu + brotli + wp-cli so the
+# plugin's page cache, object cache, and optimization paths can be exercised.
+#
+# Build:  podman build -t cosmic-cache/wp -f tests/container/Containerfile .
+# Run:    podman-compose -f tests/container/docker-compose.yml up -d
+FROM docker.io/library/wordpress:php8.4-apache
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        libbrotli-dev \
+        libzip-dev \
+        unzip \
+        git \
+        default-mysql-client \
+    ; \
+    # brotli extension (used by Storage precompression)
+    pecl install brotli; \
+    docker-php-ext-enable brotli; \
+    # redis + apcu for the object-cache backends
+    pecl install redis apcu; \
+    docker-php-ext-enable redis apcu; \
+    docker-php-ext-install pdo_mysql zip; \
+    rm -rf /var/lib/apt/lists/*
+
+# wp-cli for `wp cosmic ...` command tests
+RUN curl -sSLo /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x /usr/local/bin/wp
+
+WORKDIR /var/www/html

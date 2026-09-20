@@ -1,0 +1,32 @@
+.cosmic-cache-wrap .nav-tab-wrapper {
+	margin-bottom: 1.5em;
+}
+
+.cosmic-cache-wrap .form-table th {
+	width: 240px;
+}
+
+.cosmic-cache-wrap .cosmic-tool-result {
+	display: none;
+	margin-top: 8px;
+	padding: 8px 12px;
+	border-radius: 4px;
+}
+
+.cosmic-cache-wrap .cosmic-tool-result.ok {
+	display: block;
+	background: #e7f6e7;
+	border-left: 4px solid #46b450;
+}
+
+.cosmic-cache-wrap .cosmic-tool-result.err {
+	display: block;
+	background: #fbeaea;
+	border-left: 4px solid #dc3232;
+}
+
+.cosmic-cache-wrap .cosmic-tool-result .spinner {
+	float: none;
+	margin: 0 6px 0 0;
+	vertical-align: middle;
+}

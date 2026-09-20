@@ -1,0 +1,51 @@
+# Cosmic Cache integration stack (podman-compose / docker-compose compatible).
+# WordPress is mounted with the plugin source so the hot path + admin + CLI
+# can be tested against a real site without repackaging.
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: cosmicroot
+      MARIADB_DATABASE: cosmic
+      MARIADB_USER: cosmic
+      MARIADB_PASSWORD: cosmic
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  wordpress:
+    build:
+      context: ../..
+      dockerfile: tests/container/Containerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: cosmic
+      WORDPRESS_DB_PASSWORD: cosmic
+      WORDPRESS_DB_NAME: cosmic
+      WORDPRESS_DEBUG: "1"
+      REDIS_HOST: redis
+    ports:
+      - "18080:80"
+    volumes:
+      # :Z (SELinux relabel) is needed for podman on Fedora and harmless for
+      # docker; CI overrides COSMIC_MOUNT_OPTS="" for docker plain mounts.
+      - "../../:/var/www/html/wp-content/plugins/cosmic-cache${COSMIC_MOUNT_OPTS-:Z}"
+      - wordpress_data:/var/www/html
+
+volumes:
+  wordpress_data:

@@ -1,0 +1,18 @@
+parameters:
+  level: 5
+  paths:
+    - src
+    - cosmic-cache.php
+    - uninstall.php
+  scanFiles:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+  bootstrapFiles:
+    - tests/unit/bootstrap.php
+  tmpDir: /tmp/phpstan-cosmic
+  ignoreErrors:
+    # fetch_many() is a tested regression-guard (PreloaderTest) exercised via
+    # reflection on purpose; PHPStan has no runtime call site to track.
+    - identifier: method.unused
+      path: src/Cache/Preloader.php
