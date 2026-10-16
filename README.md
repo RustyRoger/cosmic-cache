@@ -45,7 +45,7 @@ Performance-focused WordPress caching plugin:
   critical CSS, delay JS, lazy-load, emoji removal, DNS prefetch, query-string
   stripping.
 - **CDN rewrite** for asset URLs.
-- **Automatic purge** on post/term/comment/menu/theme changes, plus CLI + admin tools.
+- **Automatic purge** on post (including scheduled/cron publishing, the static posts page, CPT/taxonomy archives and pretty `/page/N/` pagination), term, comment, reading-settings, customizer, menu and theme changes, plus CLI + admin tools.
 
 Requires PHP 8.0+. No runtime dependencies; dev-only Composer packages.
 

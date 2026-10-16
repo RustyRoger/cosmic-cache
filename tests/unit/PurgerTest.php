@@ -8,12 +8,28 @@
 namespace { // phpcs:ignore
 	if ( ! function_exists( 'get_permalink' ) ) {
 		function get_permalink( $id ) {
+			if ( 7 === (int) $id ) {
+				return 'https://example.com/articoli/';
+			}
+			if ( 6 === (int) $id ) {
+				return 'https://example.com/front/';
+			}
 			return 'https://example.com/hello-world/';
 		}
 	}
 
 	if ( ! function_exists( 'get_the_terms' ) ) {
 		function get_the_terms( $id, $taxonomy ) {
+			if ( 'post_tag' === $taxonomy ) {
+				// Tags are covered via get_the_tags() below.
+				return false;
+			}
+			if ( 'genre' === $taxonomy ) {
+				$term          = new \stdClass();
+				$term->term_id = 21;
+				$term->slug    = 'sci-fi';
+				return array( $term );
+			}
 			$term         = new \stdClass();
 			$term->term_id = 9;
 			$term->slug    = 'uncategorized';
@@ -26,6 +42,9 @@ namespace { // phpcs:ignore
 			$slug = is_object( $term ) && isset( $term->slug ) ? $term->slug : 'uncategorized';
 			if ( 'news' === $slug ) {
 				return 'https://example.com/tag/news/';
+			}
+			if ( 'sci-fi' === $slug ) {
+				return 'https://example.com/genre/sci-fi/';
 			}
 			return 'https://example.com/category/uncategorized/';
 		}
@@ -42,8 +61,7 @@ namespace { // phpcs:ignore
 		}
 	}
 
-	if ( ! function_exists( 'get_post_field' ) ) {
-		function get_post_field( $field, $post_id = 0 ) {
+	if ( ! function_exists( 'get_post_field' ) ) {		function get_post_field( $field, $post_id = 0 ) {
 			if ( 'post_author' === $field ) {
 				return 5;
 			}
@@ -115,6 +133,39 @@ namespace { // phpcs:ignore
 			return $comment;
 		}
 	}
+
+	if ( ! function_exists( 'get_post_type' ) ) {
+		function get_post_type( $id = null ) {
+			return $GLOBALS['cosmic_test_wp']['post_type'] ?? 'post';
+		}
+	}
+
+	if ( ! function_exists( 'get_object_taxonomies' ) ) {
+		function get_object_taxonomies( $post_type, $output = 'names' ) {
+			if ( isset( $GLOBALS['cosmic_test_wp']['taxonomies'] ) ) {
+				return $GLOBALS['cosmic_test_wp']['taxonomies'];
+			}
+			return array( 'category' );
+		}
+	}
+
+	if ( ! function_exists( 'get_post_type_archive_link' ) ) {
+		function get_post_type_archive_link( $post_type ) {
+			if ( array_key_exists( 'archive_link', $GLOBALS['cosmic_test_wp'] ?? array() ) ) {
+				return $GLOBALS['cosmic_test_wp']['archive_link'];
+			}
+			if ( 'bottle' === $post_type ) {
+				return 'https://example.com/bottles/';
+			}
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'wp_get_post_parent_id' ) ) {
+		function wp_get_post_parent_id( $id ) {
+			return (int) ( $GLOBALS['cosmic_test_wp']['attachment_parent'] ?? 0 );
+		}
+	}
 }
 
 namespace CosmicCache\Tests { // phpcs:ignore
@@ -144,6 +195,16 @@ class PurgerTest extends TestCase {
 
 	protected function tearDown(): void {
 		update_option( 'cosmic_cache_settings', array() );
+
+		// Reset reading-settings + per-test WP doubles so state never leaks
+		// into the next test.
+		unset(
+			$GLOBALS['cosmic_test_options']['show_on_front'],
+			$GLOBALS['cosmic_test_options']['page_for_posts'],
+			$GLOBALS['cosmic_test_options']['page_on_front'],
+			$GLOBALS['cosmic_test_options']['sticky_posts']
+		);
+		$GLOBALS['cosmic_test_wp'] = array();
 
 		// Reset the deferred-purge queue between tests.
 		$pending = new \ReflectionProperty( Purger::class, 'pending' );
@@ -315,6 +376,91 @@ class PurgerTest extends TestCase {
 
 		$urls = $this->queued_urls();
 		$this->assertContains( 'https://example.com/hello-world/?cpage=2', $urls );
+	}
+
+	public function test_publish_transition_queues_posts_page_and_pretty_variants(): void {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', 7 );
+		update_option( 'page_on_front', 6 );
+
+		$purger = new Purger();
+		$purger->on_transition_post_status( 'publish', 'future', (object) array( 'ID' => 42 ) );
+
+		$urls = $this->queued_urls();
+		$this->assertContains( 'https://example.com/hello-world/', $urls );
+		$this->assertContains( 'https://example.com/articoli/', $urls );
+		$this->assertContains( 'https://example.com/articoli/page/2/', $urls );
+		$this->assertContains( 'https://example.com/articoli/page/10/', $urls );
+	}
+
+	public function test_draft_to_publish_transition_queues_permalink(): void {
+		$purger = new Purger();
+		$purger->on_transition_post_status( 'publish', 'draft', (object) array( 'ID' => 42 ) );
+
+		$this->assertContains( 'https://example.com/hello-world/', $this->queued_urls() );
+	}
+
+	public function test_publish_future_post_hook_queues_permalink(): void {
+		$purger = new Purger();
+		$purger->on_future_publish( 42 );
+
+		$this->assertContains( 'https://example.com/hello-world/', $this->queued_urls() );
+	}
+
+	public function test_purge_url_removes_pretty_pagination_siblings(): void {
+		$base = sha1( 'https://example.com/articoli/' );
+		$page = sha1( 'https://example.com/articoli/page/2/' );
+
+		file_put_contents( $this->path( $base ), 'a' );
+		file_put_contents( $this->path( $page ), 'b' );
+
+		$purger = new Purger();
+		$count  = $purger->purge_urls( array( 'https://example.com/articoli/' ), $this->settings() );
+
+		$this->assertGreaterThanOrEqual( 2, $count );
+		$this->assertFileDoesNotExist( $this->path( $base ) );
+		$this->assertFileDoesNotExist( $this->path( $page ) );
+	}
+
+	public function test_save_post_includes_custom_taxonomy_and_cpt_archive(): void {
+		$GLOBALS['cosmic_test_wp']['post_type']    = 'bottle';
+		$GLOBALS['cosmic_test_wp']['taxonomies']   = array( 'category', 'genre' );
+		$GLOBALS['cosmic_test_wp']['archive_link'] = 'https://example.com/bottles/';
+
+		$purger = new Purger();
+		$purger->on_save_post( 42, (object) array( 'ID' => 42 ) );
+
+		$urls = $this->queued_urls();
+		$this->assertContains( 'https://example.com/genre/sci-fi/', $urls );
+		$this->assertContains( 'https://example.com/bottles/', $urls );
+		$this->assertContains( 'https://example.com/bottles/page/2/', $urls );
+	}
+
+	public function test_reading_settings_change_purges_all(): void {
+		file_put_contents( $this->root . '/a.html', 'x' );
+
+		$purger = new Purger();
+		$purger->on_reading_change( 'posts', 'page' );
+
+		$this->assertFileDoesNotExist( $this->root . '/a.html' );
+	}
+
+	public function test_customize_save_purges_all(): void {
+		file_put_contents( $this->root . '/a.html', 'x' );
+
+		$purger = new Purger();
+		$purger->on_customize_save();
+
+		$this->assertFileDoesNotExist( $this->root . '/a.html' );
+	}
+
+	public function test_edit_attachment_queues_parent_post(): void {
+		$GLOBALS['cosmic_test_wp']['attachment_parent'] = 42;
+
+		$purger = new Purger();
+		$purger->on_edit_attachment( 99 );
+
+		$this->assertContains( 'https://example.com/hello-world/', $this->queued_urls() );
 	}
 }
 }

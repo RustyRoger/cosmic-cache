@@ -271,13 +271,13 @@ The `purge_on_post`, `purge_on_comment`, and `purge_on_terms` settings gate thei
 
 Hook triggers (each filterable via `cosmic_cache_purge_urls`):
 
-- `transition_post_status` — purges whenever a post leaves the `publish` status (publish → draft/private/etc.), so unpublishing never leaves a stale page. `save_post` / `wp_trash_post` / `untrash_post` / `delete_post` → permalink + home + associated term archives (`get_the_terms`). Revisions, autosaves, and posts that never held a `publish` status are ignored.
+- `transition_post_status` — purges both ways: leaving `publish` (publish → draft/private/etc.) so unpublishing never leaves a stale page, and entering `publish` (draft/future/pending → publish) so new and scheduled posts invalidate the listings they now appear in (scheduled posts published by WP-Cron never fire `save_post`, only the transition). `future_to_publish` / `publish_future_post` re-fire the same handler as a cron-safety net. `save_post` / `wp_trash_post` / `untrash_post` / `delete_post` / `edit_attachment` (parent post) → permalink + home + the static posts page (`page_for_posts`) + post-type archive + every taxonomy archive + author/date archives, each with its pretty (`/page/N/`) and query (`?paged=N`) pagination variants (each variant is a separate cache file). `purge_url()` additionally expands `/page/N/` + `/comment-page-N/` siblings for any purged URL, so manual/CLI purges cover pagination too. Revisions, autosaves, and non-public internal types are ignored.
 - Post and term events also purge the `/feed/` variants of the affected URLs, since feeds bypass the cache and would otherwise go stale.
 - `edit_term` / `delete_term` → term archive + home.
 - `comment_post` / `wp_set_comment_status` / `trackback_post` → associated post, including its comment-paged variants (whitelisted-query path hashes such as `cpage`).
 - `wp_update_nav_menu` / `switch_theme` → full purge.
 - `switch_theme`, `customize_save_after`, plugin/theme `upgrader_process_complete`, and `elementor/editor/after_save` additionally flag the pasted critical CSS snippet as possibly stale (`CriticalCSS::markStale()`, option `cosmic_cache_critical_stale`): pages are purged, but the snippet needs a human refresh. Saving a fresh snippet clears the flag and records provenance (`cosmic_cache_critical_meta`: hash/time/theme/version) shown in the Optimization tab; saving an empty snippet clears the provenance instead. An admin notice nags only while the feature is in use. Nothing is ever auto-disabled (fail-open).
-- `update_option` of `siteurl`, `home`, or permalink structure → full purge.
+- `update_option` of `siteurl`, `home`, or permalink structure → full purge. Reading-settings moves (`show_on_front`, `page_on_front`, `page_for_posts`, `sticky_posts`) → full purge. `customize_save_after` → full purge (unlike `switch_theme` it previously never purged).
 - Integration events (WooCommerce product save → product + shop page; Elementor CSS regen → full purge).
 
 Purges within one request are **deferred to `shutdown`** and de-duplicated to avoid repeated filesystem walks.

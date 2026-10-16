@@ -30,10 +30,16 @@ final class Purger {
 	 */
 	public function register_hooks(): void {
 		add_action( 'transition_post_status', array( $this, 'on_transition_post_status' ), 10, 3 );
+		// Scheduled posts published by WP-Cron (future → publish) never fire
+		// save_post (direct DB update + transition only), so the transition
+		// handler above plus these cron-safety hooks cover every publish path.
+		add_action( 'future_to_publish', array( $this, 'on_future_publish' ) );
+		add_action( 'publish_future_post', array( $this, 'on_future_publish' ) );
 		add_action( 'save_post', array( $this, 'on_save_post' ), 10, 2 );
 		add_action( 'wp_trash_post', array( $this, 'on_trash_post' ) );
 		add_action( 'untrash_post', array( $this, 'on_untrash_post' ) );
 		add_action( 'before_delete_post', array( $this, 'on_delete_post' ) );
+		add_action( 'edit_attachment', array( $this, 'on_edit_attachment' ) );
 
 		add_action( 'edit_term', array( $this, 'on_term_change' ), 10, 3 );
 		add_action( 'delete_term', array( $this, 'on_term_delete' ), 10, 4 );
@@ -55,6 +61,16 @@ final class Purger {
 		add_action( 'update_option_siteurl', array( $this, 'purge_all' ) );
 		add_action( 'update_option_home', array( $this, 'purge_all' ) );
 		add_action( 'update_option_permalink_structure', array( $this, 'purge_all' ) );
+		// Reading settings move the posts page / front page: the old and new
+		// listing URLs must both go (rare event, full purge is cheapest).
+		add_action( 'update_option_show_on_front', array( $this, 'on_reading_change' ), 10, 2 );
+		add_action( 'update_option_page_on_front', array( $this, 'on_reading_change' ), 10, 2 );
+		add_action( 'update_option_page_for_posts', array( $this, 'on_reading_change' ), 10, 2 );
+		// Sticky posts reorder home + the posts page.
+		add_action( 'update_option_sticky_posts', array( $this, 'on_reading_change' ), 10, 2 );
+		// Customizer changes visible content but (unlike switch_theme) never
+		// purged: purge here, keep the critical-CSS stale flag below.
+		add_action( 'customize_save_after', array( $this, 'on_customize_save' ) );
 
 		add_action( 'shutdown', array( $this, 'flush_pending' ), 99 );
 	}
@@ -239,6 +255,11 @@ final class Purger {
 		// single event invalidates paged + cpage variants of the same URL.
 		$files += $this->query_variants( $settings, $env, $blog_id );
 
+		// 2b. Pretty-permalink pagination siblings (/page/N/, /comment-page-N/):
+		// with pretty permalinks each page is a separate path (separate file),
+		// so purging the base URL must also clear them.
+		$files += $this->path_variants( $settings, $env, $blog_id );
+
 		$count = 0;
 		foreach ( array_keys( $files ) as $file ) {
 			if ( ! is_file( $file ) && ! is_file( $file . '.gz' ) && ! is_file( $file . '.br' ) ) {
@@ -347,17 +368,88 @@ final class Purger {
 	}
 
 	/**
-	 * post_status transition: unpublish must never leave a stale page.
+	 * post_status transition: unpublish must never leave a stale page, and
+	 * any transition INTO publish (draft/future/pending → publish, including
+	 * scheduled posts fired by WP-Cron which never trigger save_post) must
+	 * invalidate the listings the new post now appears in.
 	 *
-	 * @param string   $new_status
-	 * @param string   $old_status
-	 * @param \WP_Post $post
+	 * @param string $new_status
+	 * @param string $old_status
+	 * @param mixed  $post Post object passed by the transition hook.
 	 * @return void
 	 */
 	public function on_transition_post_status( $new_status, $old_status, $post ): void {
-		if ( ! empty( \CosmicCache\Config::runtime()['purge_on_post'] ) && 'publish' === $old_status && 'publish' !== $new_status ) {
-			$this->queue_post_urls( $post->ID );
+		if ( empty( \CosmicCache\Config::runtime()['purge_on_post'] ) ) {
+			return;
 		}
+		// Defensive: the hook always passes a WP_Post, but a wrong-type value
+		// must fail open (no purge) instead of fataling on property access.
+		$post_id = 0;
+		if ( is_object( $post ) ) {
+			$as_array = (array) $post;
+			$post_id  = isset( $as_array['ID'] ) ? (int) $as_array['ID'] : 0;
+		}
+		if ( $post_id <= 0 ) {
+			return;
+		}
+		if ( 'publish' === $old_status && 'publish' !== $new_status ) {
+			$this->queue_post_urls( $post_id );
+			return;
+		}
+		if ( 'publish' === $new_status && 'publish' !== $old_status ) {
+			if ( ! $this->is_purgeable( $post_id ) ) {
+				return;
+			}
+			$this->queue_post_urls( $post_id );
+		}
+	}
+
+	/**
+	 * Cron-safety net for scheduled publishing: `publish_future_post` passes
+	 * a post ID while `future_to_publish` passes the post object — both are
+	 * accepted here.
+	 *
+	 * @param mixed $post_or_id Post ID or post object.
+	 * @return void
+	 */
+	public function on_future_publish( $post_or_id ): void {
+		if ( empty( \CosmicCache\Config::runtime()['purge_on_post'] ) ) {
+			return;
+		}
+		$post_id = 0;
+		if ( is_object( $post_or_id ) ) {
+			$as_array = (array) $post_or_id;
+			$post_id  = isset( $as_array['ID'] ) ? (int) $as_array['ID'] : 0;
+		} elseif ( is_numeric( $post_or_id ) ) {
+			$post_id = (int) $post_or_id;
+		}
+		if ( $post_id <= 0 || ! $this->is_purgeable( $post_id ) ) {
+			return;
+		}
+		$this->queue_post_urls( $post_id );
+	}
+
+	/**
+	 * Whether a post ID may trigger invalidation (excludes revisions,
+	 * autosaves and non-public internal types).
+	 *
+	 * @param int $post_id
+	 * @return bool
+	 */
+	private function is_purgeable( int $post_id ): bool {
+		if ( function_exists( 'wp_is_post_revision' ) && wp_is_post_revision( $post_id ) ) {
+			return false;
+		}
+		if ( function_exists( 'wp_is_post_autosave' ) && wp_is_post_autosave( $post_id ) ) {
+			return false;
+		}
+		if ( function_exists( 'get_post_type' ) ) {
+			$type = get_post_type( $post_id );
+			if ( is_string( $type ) && in_array( $type, array( 'revision', 'autosave', 'nav_menu_item', 'customize_changeset', 'oembed_cache' ), true ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -374,7 +466,7 @@ final class Purger {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
-		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+		if ( ! $this->is_purgeable( $post_id ) ) {
 			return;
 		}
 		if ( 'publish' !== get_post_status( $post_id ) ) {
@@ -405,6 +497,48 @@ final class Purger {
 	public function on_delete_post( $post_id ) {
 		if ( ! empty( \CosmicCache\Config::runtime()['purge_on_post'] ) ) {
 			$this->queue_post_urls( $post_id );
+		}
+	}
+
+	/**
+	 * Reading-settings change (show_on_front / page_on_front / page_for_posts
+	 * / sticky_posts): the listings move, so a full purge is the cheapest
+	 * correct invalidation (rare event).
+	 *
+	 * @param mixed $old_value Previous option value (ignored).
+	 * @param mixed $value New option value (ignored).
+	 * @return void
+	 */
+	public function on_reading_change( $old_value = null, $value = null ): void {
+		$this->purge_all();
+	}
+
+	/**
+	 * Customizer save changes visible content (unlike switch_theme it never
+	 * purged): full purge. The critical-CSS stale flag is handled by the
+	 * separate CriticalCSS::markStale hook.
+	 *
+	 * @return void
+	 */
+	public function on_customize_save(): void {
+		$this->purge_all();
+	}
+
+	/**
+	 * Media edit (e.g. a new featured image): invalidate the parent post
+	 * that displays the attachment. Attachments themselves store with the
+	 * `inherit` status and never match the save_post publish check.
+	 *
+	 * @param int $attachment_id
+	 * @return void
+	 */
+	public function on_edit_attachment( $attachment_id ): void {
+		if ( empty( \CosmicCache\Config::runtime()['purge_on_post'] ) ) {
+			return;
+		}
+		$parent = function_exists( 'wp_get_post_parent_id' ) ? (int) wp_get_post_parent_id( (int) $attachment_id ) : 0;
+		if ( $parent > 0 ) {
+			$this->queue_post_urls( $parent );
 		}
 	}
 
@@ -478,6 +612,11 @@ final class Purger {
 	/**
 	 * Build the cache URLs affected by a post event.
 	 *
+	 * Covers the permalink, home, the static posts page (page_for_posts),
+	 * the post-type archive, every taxonomy archive, author + date archives —
+	 * each with its pretty (`/page/N/`) and query (`?paged=N`) pagination
+	 * variants, since each variant is a separate cache file on disk.
+	 *
 	 * @param int  $post_id
 	 * @param bool $with_comments
 	 * @return array<int,string>
@@ -485,27 +624,70 @@ final class Purger {
 	private function post_urls( int $post_id, bool $with_comments = false ): array {
 		$urls = array();
 
-		$permalink = get_permalink( $post_id );
+		$permalink = function_exists( 'get_permalink' ) ? get_permalink( $post_id ) : '';
 		if ( $permalink ) {
 			$urls[] = $permalink;
 			$urls[] = $permalink . 'feed/';
 		}
 
-		// Home + bounded paginated home: ?paged=N are whitelisted separate
-		// cache entries, so a publish must invalidate them together.
-		$home = home_url( '/' );
-		$urls[] = $home;
-		for ( $i = 2; $i <= 10; $i++ ) {
-			$urls[] = add_query_arg( 'paged', (string) $i, $home );
+		// Home + posts page (page_for_posts): with a static front page the
+		// article listing lives on the posts page, never on home_url('/').
+		if ( function_exists( 'home_url' ) ) {
+			$urls = array_merge( $urls, $this->archive_variants( home_url( '/' ) ) );
+		}
+		if ( function_exists( 'get_option' ) && function_exists( 'get_permalink' ) ) {
+			$posts_page = (int) get_option( 'page_for_posts' );
+			if ( 'page' === (string) get_option( 'show_on_front' ) && $posts_page > 0 ) {
+				$link = get_permalink( $posts_page );
+				if ( $link ) {
+					$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
+				}
+			}
 		}
 
-		if ( function_exists( 'get_the_terms' ) ) {
+		// Post-type archive (no-op for post/page, future-proof for CPTs).
+		if ( function_exists( 'get_post_type' ) && function_exists( 'get_post_type_archive_link' ) ) {
+			$type = get_post_type( $post_id );
+			if ( is_string( $type ) && '' !== $type && 'post' !== $type && 'page' !== $type ) {
+				$link = get_post_type_archive_link( $type );
+				if ( $link ) {
+					$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
+				}
+			}
+		}
+
+		// Every public taxonomy attached to the post type (categories, tags,
+		// and any custom taxonomy) — not just the hardcoded category/tag pair.
+		$taxonomies_done = false;
+		if ( function_exists( 'get_object_taxonomies' ) && function_exists( 'get_post_type' ) && function_exists( 'get_the_terms' ) ) {
+			$post_type  = get_post_type( $post_id );
+			$taxonomies = get_object_taxonomies( is_string( $post_type ) ? $post_type : 'post' );
+			$taxonomies_done = true;
+			foreach ( $taxonomies as $taxonomy ) {
+				$terms = get_the_terms( $post_id, (string) $taxonomy );
+				if ( ! is_array( $terms ) ) {
+					continue;
+				}
+				foreach ( $terms as $term ) {
+					if ( ! function_exists( 'get_term_link' ) ) {
+						continue 2;
+					}
+					$link = get_term_link( $term );
+					if ( $link && ! is_wp_error( $link ) ) {
+						$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
+						$urls[] = (string) $link . 'feed/';
+					}
+				}
+			}
+		}
+
+		if ( ! $taxonomies_done && function_exists( 'get_the_terms' ) ) {
 			$terms = get_the_terms( $post_id, 'category' );
 			if ( is_array( $terms ) ) {
 				foreach ( $terms as $term ) {
 					$link = get_term_link( $term );
 					if ( $link && ! is_wp_error( $link ) ) {
-						$urls[] = (string) $link;
+						$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
 						$urls[] = (string) $link . 'feed/';
 					}
 				}
@@ -532,7 +714,7 @@ final class Purger {
 			if ( $author > 0 ) {
 				$link = get_author_posts_url( $author );
 				if ( $link ) {
-					$urls[] = (string) $link;
+					$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
 					$urls[] = (string) $link . 'feed/';
 				}
 			}
@@ -549,7 +731,7 @@ final class Purger {
 				$day   = (int) gmdate( 'j', $ts );
 				foreach ( array( get_year_link( $year ), get_month_link( $year, $month ), get_day_link( $year, $month, $day ) ) as $link ) {
 					if ( $link ) {
-						$urls[] = (string) $link;
+						$urls = array_merge( $urls, $this->archive_variants( (string) $link ) );
 					}
 				}
 			}
@@ -561,6 +743,28 @@ final class Purger {
 		}
 
 		return array_values( array_unique( $urls ) );
+	}
+
+	/**
+	 * Listing variants for one archive URL: the base URL plus its bounded
+	 * pagination siblings, both pretty (`/page/N/`) and query (`?paged=N`)
+	 * forms, since pretty permalinks store each page as a separate file.
+	 *
+	 * @param string $url
+	 * @return array<int,string>
+	 */
+	private function archive_variants( string $url ): array {
+		$variants = array( $url );
+		$base     = rtrim( $url, '/' );
+		for ( $i = 2; $i <= 10; $i++ ) {
+			$variants[] = $base . '/page/' . $i . '/';
+			if ( function_exists( 'add_query_arg' ) ) {
+				$variants[] = add_query_arg( 'paged', (string) $i, $url );
+			} else {
+				$variants[] = $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . 'paged=' . $i;
+			}
+		}
+		return $variants;
 	}
 
 	/**
@@ -637,6 +841,42 @@ final class Purger {
 	private function strip_query( array $env ): array {
 		$env['query'] = array();
 		return $env;
+	}
+
+	/**
+	 * Pretty-permalink pagination siblings for a URL: bounded /page/N/ and
+	 * /comment-page-N/ path variants (each a separate cache file on disk).
+	 *
+	 * @param array<string,mixed> $settings
+	 * @param array<string,mixed> $env
+	 * @param int                 $blog_id
+	 * @return array<string,bool> File path => true.
+	 */
+	private function path_variants( array $settings, array $env, int $blog_id ): array {
+		$files = array();
+		$base  = rtrim( (string) ( $env['path'] ?? '/' ), '/' );
+
+		// Never expand feed or embed sub-paths: they are bypassed (never
+		// cached) and their siblings cannot exist on disk.
+		if ( 1 === preg_match( '#/(feed|embed)/?$#', $base ) ) {
+			return $files;
+		}
+
+		// Bounded range (2..10) mirrors archive_variants(): deterministic and
+		// cheap, covering every listing a single publish can shift.
+		for ( $i = 2; $i <= 10; $i++ ) {
+			foreach ( array( $base . '/page/' . $i . '/', $base . '/comment-page-' . $i . '/' ) as $path ) {
+				$candidate          = $env;
+				$candidate['path']  = $path;
+				$candidate['query'] = array();
+				$file               = Vary::resolveFile( $settings, $candidate, $blog_id );
+				if ( '' !== $file ) {
+					$files[ $file ] = true;
+				}
+			}
+		}
+
+		return $files;
 	}
 
 	/**

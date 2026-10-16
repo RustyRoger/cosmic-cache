@@ -95,6 +95,30 @@ W post update "$UP_PID" --post_status=draft >/dev/null
 PE "test ! -f $up_file && echo 'unpublish: purged OK' || { echo 'unpublish: NOT purged (BAD)'; exit 1; }"
 W post delete "$UP_PID" --force >/dev/null 2>&1 || true
 
+echo "== 4b. Publish purges the static posts page (incl. scheduled) =="
+FRONT_PID=$(W post create --post_type=page --post_status=publish --post_title="Front Static" --porcelain | tr -d '\r')
+POSTS_PID=$(W post create --post_type=page --post_status=publish --post_title="Articoli" --porcelain | tr -d '\r')
+W option update show_on_front page >/dev/null
+W option update page_on_front "$FRONT_PID" >/dev/null
+W option update page_for_posts "$POSTS_PID" >/dev/null
+posts_url=$(W post list --post_type=page --post__in="$POSTS_PID" --field=url | head -1 | tr -d '\r')
+curl -s -o /dev/null "$posts_url"
+curl -s -D - -o /dev/null "$posts_url" | grep -qi 'x-cache: hit' && echo "posts page warmed"
+SP_PID=$(W post create --post_status=publish --post_title="News flash" --porcelain | tr -d '\r')
+curl -s -D - -o /dev/null "$posts_url" | grep -qi 'x-cache: hit' && { echo "posts page NOT purged on publish (BAD)"; exit 1; } || echo "posts page purged on publish OK"
+curl -s -o /dev/null "$posts_url"
+FUT_PID=$(W post create --post_status=future --post_date_gmt="$(date -u -d '2 minutes ago' '+%Y-%m-%d %H:%M:%S')" --post_title="Scheduled news" --porcelain | tr -d '\r')
+W cron event run publish_future_post >/dev/null 2>&1 || W eval "do_action('publish_future_post', $FUT_PID);" >/dev/null
+curl -s -D - -o /dev/null "$posts_url" | grep -qi 'x-cache: hit' && { echo "posts page NOT purged on scheduled publish (BAD)"; exit 1; } || echo "posts page purged on scheduled publish OK"
+W post delete "$SP_PID" --force >/dev/null 2>&1 || true
+W post delete "$FUT_PID" --force >/dev/null 2>&1 || true
+W option update show_on_front posts >/dev/null
+W option delete page_on_front >/dev/null 2>&1 || true
+W option delete page_for_posts >/dev/null 2>&1 || true
+W post delete "$FRONT_PID" --force >/dev/null 2>&1 || true
+W post delete "$POSTS_PID" --force >/dev/null 2>&1 || true
+W cosmic purge >/dev/null 2>&1 || true
+
 echo "== 5. Debug logging + perf gate =="
 W option update cosmic_cache_settings '{"enabled":true,"debug":true}' --format=json >/dev/null
 W eval 'CosmicCache\Config::compile();'
