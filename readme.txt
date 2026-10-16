@@ -108,6 +108,11 @@ from a persistent queue on the next tick.
 
 == Changelog ==
 
+= 1.1.4 =
+* Fix: the static posts page, scheduled (cron) publishing and pretty `/page/N/`
+  pagination could stay stale after a new post — invalidation now covers them,
+  plus CPT/taxonomy archives, reading-settings, Customizer and media edits.
+
 = 1.1.3 =
 * Fix: the release zip omitted `dropins/`, so admin uploads (including
   1.1.2) could not generate drop-ins at activation; the build now fails

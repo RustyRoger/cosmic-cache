@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] — 2026-10-16
+
+### Fixed
+
+- **Static posts page (`page_for_posts`) never purged**: with a static front
+  page, publishing a post invalidated only `home_url('/')` — never the actual
+  article listing. `post_urls()` now includes the posts page with its pretty
+  (`/page/N/`) and query (`?paged=N`) pagination variants.
+- **Scheduled (WP-Cron) publishing never purged**: `future → publish` fires no
+  `save_post`, only the status transition, which was handled for unpublishing
+  only. `transition_post_status` now purges in both directions, with
+  `future_to_publish` / `publish_future_post` as a cron-safety net.
+- **Pretty pagination siblings left stale**: each `/page/N/` (and
+  `/comment-page-N/`) is a separate cache file; `purge_url()` now expands them
+  for any purged URL, so manual/CLI purges cover pagination too.
+- **Custom taxonomies and CPT archives**: invalidation looped only over
+  `category`/`post_tag` and never purged the post-type archive; it now covers
+  every taxonomy of the post type plus `get_post_type_archive_link()`.
+- **Reading-settings and Customizer changes**: `show_on_front` /
+  `page_on_front` / `page_for_posts` / `sticky_posts` and
+  `customize_save_after` (which previously never purged) now trigger a full
+  purge; media edits (`edit_attachment`) invalidate the parent post.
+  8 new unit tests; PHPStan/PHPCS green.
+
 ## [1.1.3] — 2026-09-09
 
 ### Fixed
@@ -245,7 +269,8 @@ Initial release. Implements the full pipeline described in the project spec.
   Resolves the Lighthouse "Use efficient cache lifetimes" audit flagged on the
   live container.
 
-[Unreleased]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/RustyRoger/cosmic-cache/compare/v1.1.0...v1.1.1
