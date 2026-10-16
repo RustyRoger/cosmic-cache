@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Cosmic Cache
  * Description:       Performance-focused WordPress caching: a pre-boot page cache, opt-in object cache, asset optimization and CDN rewrite — pure PHP, zero runtime dependencies.
- * Version:           1.1.3
+ * Version:           1.1.4
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Cosmic Cache
@@ -17,7 +17,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'COSMIC_CACHE_VERSION' ) ) {
-	define( 'COSMIC_CACHE_VERSION', '1.1.3' );
+	define( 'COSMIC_CACHE_VERSION', '1.1.4' );
 }
 
 require_once __DIR__ . '/src/Autoloader.php';

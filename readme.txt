@@ -2,9 +2,9 @@
 Contributors: cosmiccache
 Tags: cache, page cache, performance, optimization, cdn
 Requires at least: 6.0
-Tested up to: 7.0.2
+Tested up to: 7.1.3
 Requires PHP: 8.0
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
